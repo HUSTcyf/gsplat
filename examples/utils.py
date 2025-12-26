@@ -166,8 +166,11 @@ def colormap(img, cmap="jet"):
     fig.colorbar(im, ax=ax)
     fig.tight_layout()
     fig.canvas.draw()
-    data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    # Use buffer_rgba() for newer matplotlib versions (>=3.8)
+    # Convert RGBA to RGB by dropping the alpha channel
+    data = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (4,))
+    data = data[..., :3]  # Drop alpha channel
     img = torch.from_numpy(data).float().permute(2, 0, 1)
     plt.close()
     return img
